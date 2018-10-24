@@ -54,19 +54,31 @@ def DumpBBox(dirPath):
             bBox = DumpBBoxCore(xmlFilePath)
 
             for i in bBox:
-                if bool(bBox[i]):
+                if bool(bBox[i]): # only valid if there is label
                     imgPath = os.path.join(dirPath, os.path.basename(xmlFilePath).split('.')[0]+'_'+i+'.jpg')
                     output[imgPath] = bBox[i]
     return output
 
 def CreateJPEGImageAndAnnotation(srcDir, outDir):
-    for img in DumpBBox(srcDir):
-        outputFile = os.path.join(outDir, 'JPEGImages', os.path.basename(img))
-        shutil.copyfile(img, outputFile)
+    dumpInfo = DumpBBox(srcDir)
+    for img in dumpInfo:
+        imgFileName = os.path.basename(img)
+        imgFilePath = os.path.join(outDir, 'JPEGImages', imgFileName)
+        shutil.copyfile(img, imgFilePath)
 
         h, w, c = scipy.ndimage.imread(img).shape
+        formatStr = '<annotation><folder>VOC2012</folder><filename>' + imgFileName + '</filename><source><database>The VOC2007 Database</database><annotation>PASCAL VOC2007</annotation><image>flickr</image></source><size><width>'+\
+                        str(w) + '</width><height>' + str(h) + '</height><depth>' + str(c) + '</depth></size><segmented>1</segmented><object><name>' + str(dumpInfo[img]['tirads']) + '</name><pose>Unspecified</pose><truncated>0</truncated><difficult>0</difficult><bndbox><xmin>' +\
+                        str(dumpInfo[img]['minX']) + '</xmin><ymin>' + str(dumpInfo[img]['minY']) + '</ymin><xmax>' + str(dumpInfo[img]['minY']) + '</xmax><ymax>' + str(dumpInfo[img]['maxY']) + '</ymax></bndbox></object></annotation>'
+    
 
-         
+        annoFileName = os.path.basename(img).split('.')[0]+'.xml'
+        annoFilePath = os.path.join(outDir, 'Annotations', annoFileName)
+
+        with open(annoFilePath, 'w') as f:
+            print(formatStr, file = f)
+
+
 
 
 
@@ -85,8 +97,6 @@ if os.path.exists('./output'):
     shutil.rmtree('./output')
 os.makedirs('./output/JPEGImages')
 os.makedirs('./output/Annotations')
-path = './imgs'
-CreateJPEGImageAndAnnotation(path, './output')
-print(DumpBBox(path))
 
+CreateJPEGImageAndAnnotation('./imgs', './output')
     
