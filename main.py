@@ -3,6 +3,7 @@ import re
 import os
 import shutil
 import scipy.ndimage
+import random
 
 def DumpBBoxCore(xmlFilePath):
     
@@ -68,7 +69,7 @@ def CreateJPEGImageAndAnnotation(srcDir, outDir):
 
         h, w, c = scipy.ndimage.imread(img).shape
         formatStr = '<annotation><folder>VOC2012</folder><filename>' + imgFileName + '</filename><source><database>The VOC2007 Database</database><annotation>PASCAL VOC2007</annotation><image>flickr</image></source><size><width>'+\
-                        str(w) + '</width><height>' + str(h) + '</height><depth>' + str(c) + '</depth></size><segmented>1</segmented><object><name>' + str(dumpInfo[img]['tirads']) + '</name><pose>Unspecified</pose><truncated>0</truncated><difficult>0</difficult><bndbox><xmin>' +\
+                        str(w) + '</width><height>' + str(h) + '</height><depth>' + str(c) + '</depth></size><segmented>0</segmented><object><name>' + str(dumpInfo[img]['tirads']) + '</name><pose>Unspecified</pose><truncated>0</truncated><difficult>0</difficult><bndbox><xmin>' +\
                         str(dumpInfo[img]['minX']) + '</xmin><ymin>' + str(dumpInfo[img]['minY']) + '</ymin><xmax>' + str(dumpInfo[img]['minY']) + '</xmax><ymax>' + str(dumpInfo[img]['maxY']) + '</ymax></bndbox></object></annotation>'
     
 
@@ -79,15 +80,38 @@ def CreateJPEGImageAndAnnotation(srcDir, outDir):
             print(formatStr, file = f)
 
 
+def CreateImageSets(outDir):
+    trainval_percent = 0.1
+    train_percent = 0.9
+    total_xml = os.listdir(os.path.join(outDir, 'Annotations'))
 
+    num = len(total_xml)
+    list = range(num)
+    tv = int(num * trainval_percent)
+    tr = int(tv * train_percent)
+    trainval = random.sample(list, tv)
+    train = random.sample(trainval, tr)
 
+    ftrainval = open(os.path.join(outDir, 'ImageSets/Main/trainval.txt'), 'w')
+    ftest = open(os.path.join(outDir, 'ImageSets/Main/test.txt'), 'w')
+    ftrain = open( os.path.join(outDir, 'ImageSets/Main/train.txt'), 'w')
+    fval = open(os.path.join(outDir, 'ImageSets/Main/val.txt'), 'w')
 
+    for i in list:
+        name = total_xml[i][:-4] + '\n'
+        if i in trainval:
+            ftrainval.write(name)
+            if i in train:
+                ftest.write(name)
+            else:
+                fval.write(name)
+        else:
+            ftrain.write(name)
 
-
-
-
-
-
+    ftrainval.close()
+    ftrain.close()
+    fval.close()
+    ftest.close()
 
 
     
@@ -97,6 +121,8 @@ if os.path.exists('./output'):
     shutil.rmtree('./output')
 os.makedirs('./output/JPEGImages')
 os.makedirs('./output/Annotations')
+os.makedirs('./output/ImageSets/Main/')
 
 CreateJPEGImageAndAnnotation('./imgs', './output')
+CreateImageSets('./output')
     
