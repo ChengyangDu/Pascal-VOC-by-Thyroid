@@ -1,6 +1,8 @@
 import xml.dom.minidom
 import re
 import os
+import shutil
+import scipy.ndimage
 
 def DumpBBoxCore(xmlFilePath):
     
@@ -13,7 +15,7 @@ def DumpBBoxCore(xmlFilePath):
         try:
             svg = mark.getElementsByTagName('svg')[0].childNodes[0].data
         except:
-            output[image] = {}
+            output[image] = {}#no labelling info
         else:
             pattern = re.compile(r"\d+")
             match = pattern.findall(svg)
@@ -53,8 +55,34 @@ def DumpBBox(dirPath):
                     output[imgPath] = bBox[i]
     return output
 
+def CreateJPEGImageAndAnnotation(srcDir, outDir):
+    for img in DumpBBox(srcDir):
+        outputFile = os.path.join(outDir, 'JPEGImages', os.path.basename(img))
+        shutil.copyfile(img, outputFile)
 
+        h, w, c = scipy.ndimage.imread(img).shape
+
+         
+
+
+
+
+
+
+
+
+
+
+
+    
+
+
+if os.path.exists('./output'):
+    shutil.rmtree('./output')
+os.makedirs('./output/JPEGImages')
+os.makedirs('./output/Annotations')
 path = './imgs'
+CreateJPEGImageAndAnnotation(path, './output')
 print(DumpBBox(path))
 
     
