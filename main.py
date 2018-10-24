@@ -8,38 +8,42 @@ def DumpBBoxCore(xmlFilePath):
     
     dom = xml.dom.minidom.parse(xmlFilePath)
     marks = dom.getElementsByTagName('mark')
+    try:
+        tirads = dom.getElementsByTagName('tirads')[0].childNodes[0].data
+    except:
+        tirads = 'na'
+    finally:
+        output = {}
+        for mark in marks:
+            image = mark.getElementsByTagName('image')[0].childNodes[0].data
+            try:
+                svg = mark.getElementsByTagName('svg')[0].childNodes[0].data
+            except:
+                output[image] = {}#no labelling info
+            else:
+                pattern = re.compile(r"\d+")
+                match = pattern.findall(svg)
 
-    output = {}
-    for mark in marks:
-        image = mark.getElementsByTagName('image')[0].childNodes[0].data
-        try:
-            svg = mark.getElementsByTagName('svg')[0].childNodes[0].data
-        except:
-            output[image] = {}#no labelling info
-        else:
-            pattern = re.compile(r"\d+")
-            match = pattern.findall(svg)
+                for i in range(len(match)):
+                    if i == 0:
+                        minX = match[0]
+                        maxX = match[0]
+                    elif i == 1:
+                        minY = match[1]
+                        maxY = match[1]
 
-            for i in range(len(match)):
-                if i == 0:
-                    minX = match[0]
-                    maxX = match[0]
-                elif i == 1:
-                    minY = match[1]
-                    maxY = match[1]
-
-                elif i%2 == 0:
-                    if match[i]<minX:
-                        minX = match[i]
-                    if match[i]>maxX:
-                        maxX = match[i]
-                else:
-                    if match[i]<minY:
-                        minY = match[i]
-                    if match[i]>maxY:
-                        maxY = match[i] 
-            output[image] = {'minX':minX, 'maxX':maxX, 'minY':minY, 'maxY':maxY}
-    return output
+                    elif i%2 == 0:
+                        if match[i]<minX:
+                            minX = match[i]
+                        if match[i]>maxX:
+                            maxX = match[i]
+                    else:
+                        if match[i]<minY:
+                            minY = match[i]
+                        if match[i]>maxY:
+                            maxY = match[i] 
+                output[image] = {'minX':minX, 'maxX':maxX, 'minY':minY, 'maxY':maxY, 'tirads':tirads}
+        return output
 
 def DumpBBox(dirPath):
     output = {}
