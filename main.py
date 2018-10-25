@@ -5,12 +5,17 @@ import shutil
 import scipy.ndimage
 import random
 
-def DumpBBoxCore(xmlFilePath):
+def DumpBBoxCore(xmlFilePath, isDevidedByBenign):
     
     dom = xml.dom.minidom.parse(xmlFilePath)
     marks = dom.getElementsByTagName('mark')
     try:
         tirads = dom.getElementsByTagName('tirads')[0].childNodes[0].data
+        if isDevidedByBenign:
+            if tirads == '2' or tirads == '3':
+                tirads = 'benign'
+            else:
+                tirads = 'malign'
     except:
         tirads = 'na'
     finally:
@@ -42,17 +47,20 @@ def DumpBBoxCore(xmlFilePath):
                         if match[i]<minY:
                             minY = match[i]
                         if match[i]>maxY:
-                            maxY = match[i] 
-                output[image] = {'minX':minX, 'maxX':maxX, 'minY':minY, 'maxY':maxY, 'tirads':tirads}
+                            maxY = match[i]
+                if tirads == 'na':
+                    output[image] = {} # no classifications
+                else:
+                    output[image] = {'minX':minX, 'maxX':maxX, 'minY':minY, 'maxY':maxY, 'tirads':tirads}
         return output
 
-def DumpBBox(dirPath):
+def DumpBBox(dirPath, isDevidedByBenign):
     output = {}
     fileList = os.listdir(dirPath)
     for file in fileList:
         if os.path.basename(file).split('.')[1] == 'xml':
             xmlFilePath = os.path.join(dirPath,file)
-            bBox = DumpBBoxCore(xmlFilePath)
+            bBox = DumpBBoxCore(xmlFilePath, isDevidedByBenign)
 
             for i in bBox:
                 if bool(bBox[i]): # only valid if there is label
@@ -60,8 +68,8 @@ def DumpBBox(dirPath):
                     output[imgPath] = bBox[i]
     return output
 
-def CreateJPEGImageAndAnnotation(srcDir, outDir):
-    dumpInfo = DumpBBox(srcDir)
+def CreateJPEGImageAndAnnotation(srcDir, outDir, isDevidedByBenign):
+    dumpInfo = DumpBBox(srcDir, isDevidedByBenign)
     for img in dumpInfo:
         imgFileName = os.path.basename(img)
         imgFilePath = os.path.join(outDir, 'JPEGImages', imgFileName)
@@ -131,8 +139,9 @@ if __name__=="__main__":
 
     sourceDir = './imgs'
     outputDir = './output'
+    isDevidedByBenign = True
 
     CleanOutputDir(outputDir)
-    CreateJPEGImageAndAnnotation(sourceDir, outputDir)
+    CreateJPEGImageAndAnnotation(sourceDir, outputDir, isDevidedByBenign)
     CreateImageSets(outputDir, 0.9)
     
