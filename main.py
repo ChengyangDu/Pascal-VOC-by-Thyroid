@@ -80,49 +80,53 @@ def CreateJPEGImageAndAnnotation(srcDir, outDir):
             print(formatStr, file = f)
 
 
-def CreateImageSets(outDir):
-    trainval_percent = 0.1
-    train_percent = 0.9
-    total_xml = os.listdir(os.path.join(outDir, 'Annotations'))
-
-    num = len(total_xml)
-    list = range(num)
-    tv = int(num * trainval_percent)
-    tr = int(tv * train_percent)
-    trainval = random.sample(list, tv)
-    train = random.sample(trainval, tr)
-
-    ftrainval = open(os.path.join(outDir, 'ImageSets/Main/trainval.txt'), 'w')
-    ftest = open(os.path.join(outDir, 'ImageSets/Main/test.txt'), 'w')
-    ftrain = open( os.path.join(outDir, 'ImageSets/Main/train.txt'), 'w')
-    fval = open(os.path.join(outDir, 'ImageSets/Main/val.txt'), 'w')
-
-    for i in list:
-        name = total_xml[i][:-4] + '\n'
-        if i in trainval:
-            ftrainval.write(name)
-            if i in train:
-                ftest.write(name)
-            else:
-                fval.write(name)
-        else:
-            ftrain.write(name)
-
-    ftrainval.close()
-    ftrain.close()
-    fval.close()
-    ftest.close()
-
-
+def CreateImageSets(outDir, trainPercent):
+    totalXml = os.listdir(os.path.join(outDir, 'Annotations'))
     
+    num = len(totalXml)
+    list = range(num)
+    train = random.sample(range(num), int(num * trainPercent))
 
+    classes = set()
+    classDetails = dict()
+    for curXml in totalXml:
+        dom = xml.dom.minidom.parse(os.path.join(outDir, 'Annotations', curXml))
+        annotation = dom.getElementsByTagName('annotation')[0]
+        object = annotation.getElementsByTagName('object')[0]
+        name = object.getElementsByTagName('name')[0].childNodes[0].data
+        classes.update([name])
+        classDetails[curXml] = name
+    
+    for curClass in classes:
+        ftrainval = open(os.path.join(outDir, 'ImageSets/Main/', curClass+'_trainval.txt'), 'w')
+        ftrain = open( os.path.join(outDir, 'ImageSets/Main/', curClass+'_train.txt'), 'w')
+        fval = open(os.path.join(outDir, 'ImageSets/Main/' + curClass+'_val.txt'), 'w')
 
-if os.path.exists('./output'):
-    shutil.rmtree('./output')
-os.makedirs('./output/JPEGImages')
-os.makedirs('./output/Annotations')
-os.makedirs('./output/ImageSets/Main/')
+        for i in list:
+            name = totalXml[i][:-4]
+            if classDetails[totalXml[i]] == curClass:
+                flag = 1
+            else:
+                flag = -1
+            info = name + ' ' + str(flag) + '\n'
+            ftrainval.write(info)
+            if i in train:
+                ftrain.write(info)
+            else:
+                fval.write(info)
 
+        ftrainval.close()
+        ftrain.close()
+        fval.close()
+
+def CleanOutputDir():
+    if os.path.exists('./output'):
+        shutil.rmtree('./output')
+    os.makedirs('./output/JPEGImages')
+    os.makedirs('./output/Annotations')
+    os.makedirs('./output/ImageSets/Main/')
+
+CleanOutputDir()
 CreateJPEGImageAndAnnotation('./imgs', './output')
-CreateImageSets('./output')
+CreateImageSets('./output', 0.9)
     
