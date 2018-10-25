@@ -135,6 +135,22 @@ def CleanOutputDir(outputDir):
     os.makedirs(os.path.join(outputDir, 'Annotations'))
     os.makedirs(os.path.join(outputDir, 'ImageSets/Main'))
 
+def CreateImgDir(outputDir):
+    txtFiles = os.listdir(os.path.join(outputDir, 'ImageSets/Main/'))
+    
+    for txt in txtFiles:
+        if txt.split('.')[0].split('_')[1] == 'trainval':
+            curClass = txt.split('.')[0].split('_')[0]
+            os.makedirs(os.path.join(outputDir, curClass))
+            txtFilePath = os.path.join(outputDir, 'ImageSets/Main/', txt)
+            for line in open(txtFilePath):
+                if line.split(' ')[1] =='1\n':
+                    curImageName = line.split(' ')[0]+'.jpg'
+                    curImagePath = os.path.join(outputDir,'JPEGImages',curImageName)
+                    shutil.copy(curImagePath,  os.path.join(outputDir, curClass, curImageName))
+
+            
+
 
 if __name__=="__main__":
 
@@ -145,4 +161,5 @@ if __name__=="__main__":
     CleanOutputDir(outputDir)
     CreateJPEGImageAndAnnotation(sourceDir, outputDir, isDevidedByBenign)
     CreateImageSets(outputDir, 0.9)
+    CreateImgDir(outputDir)
     
