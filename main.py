@@ -119,14 +119,20 @@ def CreateImageSets(outDir, trainPercent):
         ftrain.close()
         fval.close()
 
-def CleanOutputDir():
-    if os.path.exists('./output'):
-        shutil.rmtree('./output')
-    os.makedirs('./output/JPEGImages')
-    os.makedirs('./output/Annotations')
-    os.makedirs('./output/ImageSets/Main/')
+def CleanOutputDir(outputDir):
+    if os.path.exists(outputDir):
+        shutil.rmtree(outputDir)
+    os.makedirs(os.path.join(outputDir, 'JPEGImages'))
+    os.makedirs(os.path.join(outputDir, 'Annotations'))
+    os.makedirs(os.path.join(outputDir, 'ImageSets/Main'))
 
-CleanOutputDir()
-CreateJPEGImageAndAnnotation('./imgs', './output')
-CreateImageSets('./output', 0.9)
+
+if __name__=="__main__":
+
+    sourceDir = './imgs'
+    outputDir = './output'
+
+    CleanOutputDir(outputDir)
+    CreateJPEGImageAndAnnotation(sourceDir, outputDir)
+    CreateImageSets(outputDir, 0.9)
     
