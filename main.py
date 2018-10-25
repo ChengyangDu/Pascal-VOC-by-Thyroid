@@ -32,22 +32,23 @@ def DumpBBoxCore(xmlFilePath, isDevidedByBenign):
 
                 for i in range(len(match)):
                     if i == 0:
-                        minX = match[0]
-                        maxX = match[0]
+                        minX = int(match[0])
+                        maxX = int(match[0])
                     elif i == 1:
-                        minY = match[1]
-                        maxY = match[1]
+                        minY = int(match[1])
+                        maxY = int(match[1])
 
                     elif i%2 == 0:
-                        if match[i]<minX:
-                            minX = match[i]
-                        if match[i]>maxX:
-                            maxX = match[i]
+                        if int(match[i])<minX:
+                            minX = int(match[i])
+                        if int(match[i])>maxX:
+                            maxX = int(match[i])
                     else:
-                        if match[i]<minY:
-                            minY = match[i]
-                        if match[i]>maxY:
-                            maxY = match[i]
+                        if int(match[i])<minY:
+                            minY = int(match[i])
+                        if int(match[i])>maxY:
+                            maxY = int(match[i])
+
                 if tirads == 'na':
                     output[image] = {} # no classifications
                 else:
@@ -78,7 +79,7 @@ def CreateJPEGImageAndAnnotation(srcDir, outDir, isDevidedByBenign):
         h, w, c = scipy.ndimage.imread(img).shape
         formatStr = '<annotation><folder>VOC2012</folder><filename>' + imgFileName + '</filename><source><database>The VOC2007 Database</database><annotation>PASCAL VOC2007</annotation><image>flickr</image></source><size><width>'+\
                         str(w) + '</width><height>' + str(h) + '</height><depth>' + str(c) + '</depth></size><segmented>0</segmented><object><name>' + str(dumpInfo[img]['tirads']) + '</name><pose>Unspecified</pose><truncated>0</truncated><difficult>0</difficult><bndbox><xmin>' +\
-                        str(dumpInfo[img]['minX']) + '</xmin><ymin>' + str(dumpInfo[img]['minY']) + '</ymin><xmax>' + str(dumpInfo[img]['minY']) + '</xmax><ymax>' + str(dumpInfo[img]['maxY']) + '</ymax></bndbox></object></annotation>'
+                        str(dumpInfo[img]['minX']) + '</xmin><ymin>' + str(dumpInfo[img]['minY']) + '</ymin><xmax>' + str(dumpInfo[img]['maxX']) + '</xmax><ymax>' + str(dumpInfo[img]['maxY']) + '</ymax></bndbox></object></annotation>'
     
 
         annoFileName = os.path.basename(img).split('.')[0]+'.xml'
